@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #6ec6d9;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  border: 3px solid #000;
+  border-radius: 8px;
+}
