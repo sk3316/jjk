@@ -1,6 +1,14 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+/* ===== RESIZE CANVAS FOR MOBILE ===== */
+function resizeCanvas() {
+  canvas.width = Math.min(window.innerWidth, 420);
+  canvas.height = Math.min(window.innerHeight, 640);
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
 /* ===== CONSTANTS ===== */
 const PIPE_WIDTH = 60;
 const GAP = 160;
@@ -28,8 +36,8 @@ let bird, pipes, score, speed, frame, gameOver;
 /* ===== INIT ===== */
 function init() {
   bird = {
-    x: 80,
-    y: 250,
+    x: canvas.width * 0.2,
+    y: canvas.height * 0.4,
     width: 36,
     height: 36,
     gravity: 0.45,
@@ -45,23 +53,27 @@ function init() {
   bgMusic.currentTime = 0;
 }
 
-/* ===== CONTROLS ===== */
+/* ===== INPUT (DESKTOP + MOBILE) ===== */
 document.addEventListener("keydown", flap);
+canvas.addEventListener("touchstart", flap);
 canvas.addEventListener("click", flap);
 
-function flap() {
+function flap(e) {
+  if (e) e.preventDefault();
+
   if (gameOver) {
     init();
     loop();
     return;
   }
+
   bird.velocity += bird.lift;
   bgMusic.play();
 }
 
 /* ===== PIPE CREATION ===== */
 function createPipe() {
-  const topHeight = Math.random() * 200 + 60;
+  const topHeight = Math.random() * (canvas.height * 0.35) + 60;
 
   pipes.push({
     x: canvas.width,
@@ -97,13 +109,12 @@ function drawGameOver() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 32px Arial";
-  ctx.fillText("Game Over", 100, 250);
+  ctx.font = "bold 30px Arial";
+  ctx.fillText("Game Over", canvas.width / 2 - 90, canvas.height / 2 - 40);
 
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 145, 290);
-  ctx.fillText("Click / Press Key", 105, 330);
-  ctx.fillText("to Restart", 145, 360);
+  ctx.font = "18px Arial";
+  ctx.fillText("Score: " + score, canvas.width / 2 - 45, canvas.height / 2);
+  ctx.fillText("Tap to Restart", canvas.width / 2 - 70, canvas.height / 2 + 40);
 }
 
 /* ===== MAIN LOOP ===== */
@@ -119,7 +130,7 @@ function loop() {
   bird.velocity = Math.min(bird.velocity, 9);
   bird.y += bird.velocity;
 
-  /* Draw Bird */
+  /* Bird Draw */
   ctx.save();
   ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
   ctx.rotate(Math.max(-0.4, Math.min(bird.velocity * 0.03, 0.6)));
@@ -130,10 +141,7 @@ function loop() {
   pipes.forEach(pipe => {
     pipe.x -= speed;
 
-    // Top pipe
     ctx.drawImage(pipeTopImg, pipe.x, 0, PIPE_WIDTH, pipe.top);
-
-    // Bottom pipe
     ctx.drawImage(
       pipeBottomImg,
       pipe.x,
@@ -142,7 +150,6 @@ function loop() {
       pipe.bottom
     );
 
-    // Score
     if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
       score++;
       pipe.passed = true;
